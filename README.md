@@ -32,9 +32,11 @@ nano /etc/network/interfaces
 
 A modo de ejemplo, esta puede ser una configuración para una IP estática:
 
+``` bash
 iface enp2s0 inet static
         address 192.168.1.5
         netmask 255.255.255.0
+```
 
 Para aplicar los cambios en la configuración de red, es necesario reiniciar el servicio:
 ``` bash
