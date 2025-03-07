@@ -56,7 +56,7 @@ Los paquetes que se van a instalar:
 * **php-fpm**: para ejecutar PHP con FastCGI en Nginx.
 * **php-mysql**: conector PHP para MariaDB/MySQL.
 * **php-gd**: biblioteca de gráficos utilizada por zoneminder.
-* **php-xml**, **php-mbstring**, **php-curl**, **php-sip**: extensiones PHP requeridas.
+* **php-xml**, **php-mbstring**, **php-curl**, **php-zip**: extensiones PHP requeridas.
 * **ffmpeg**: necesario para trabajar con flujos de video.
 * **curl**: utilidades generales.
 * **net-tools**: comandos de red útilies (netstat, por ejemplo).
@@ -99,7 +99,7 @@ chgrp -c www-data /etc/zm/zm.conf
 Creamos un archivo para dar las configuraciones para que Nginx pueda dar de alta la web de ZoneMinder:
 
 ``` bash
-nano /etc/nginx/sites-avalibre/zoneminder.conf
+nano /etc/nginx/sites-available/zoneminder.conf
 ```
 
 En **example.conf** podrá ver una ejemplo de configuración para vincular ZoneMinder con Nginx, con los comentarios correspondiente para cada linea. Podría también generar el zoneminder.conf en /etc/nginx/ y desde el archivo **default** incluir la configuración dedicada para ZoneMinder por medio de `include /etc/nginx/zoneminder.conf;`, queda a elección del administrador. Por último, habilitar la configuración en el servidor:
@@ -113,6 +113,11 @@ ln -s /etc/nginx/sites-available/zoneminder.conf /etc/nginx/sites-enabled/
 Por último, unos cambios para la configuración de ZoneMinder:
 * Modificar el archivo **01-system-paths.conf** (/etc/zm/conf.d/01-system-paths.conf) y modificar el path **ZM_PATH_ZMS**, dejando el path directo con **/cgi-bin/nph-zms**, eliminar /zm/ al comienzo del path. 
 * Modificar archivo php.ini (/etc/php/x.x/fpm/php.ini) y modificar **cgi.fix_pathinfo**, dejando la variable con el valor 0 (cero).
+* Verificar los permisos de cgi-bin para que fcgiwrap pueda ejecutarlos correctamente:
+``` bash
+chown -R www-data:www-data /usr/lib/zoneminder/cgi-bin/
+chmod -R 755 /usr/lib/zoneminder/cgi-bin/
+```
 
 ## **Certificados SSL y configuración HTTPS con Let's Encrypt**
 Obtener los certificados para el dominio que vaya a utilizar:
@@ -121,10 +126,17 @@ Obtener los certificados para el dominio que vaya a utilizar:
 certbot --nginx -d su.dominio.com -d www.sudominio.com
 ```
 
-Certbot debería modificar automáticamente el archivo de configuración del sitio en /etc/nginx/sites-avalibles/. Si todo está en orden, configure la renovación automática (los certificados de Let's Encrypt caducan cada 90 días):
+Certbot debería modificar automáticamente el archivo de configuración del sitio en /etc/nginx/sites-available/. Si todo está en orden, configure la renovación automática (los certificados de Let's Encrypt caducan cada 90 días):
 
 ``` bash
 certbot renew --dry-run
 ```
 
 Hechos todos los cambios, reinicie los servicios y habilitilos para que inicien al arrancar el servidor con `systemctl restart servicio` y `systemctl enable servicio`.
+
+## **Bibliografía**
+* https://wiki.zoneminder.com/Debian_11_Bullseye_with_Zoneminder_1.36.x
+* https://mariadb.com/kb/en/authentication-plugin-unix-socket/
+* https://mariadb.com/kb/en/mysql_secure_installation/
+* https://zoneminder.readthedocs.io/en/latest/installationguide/debian.html#debian-12-bookworm
+* https://www.cyberciti.biz/faq/how-to-install-and-configure-sudo-on-debian-linux/
